@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GroxyAI Chatbot</title>
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #222;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+
+        #chatbox {
+            width: 80%;
+            max-width: 600px;
+            height: 400px;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input, button {
+            width: 80%;
+            max-width: 600px;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>API Key Generator</h2>
+        <button onclick="generateKey()">Generate API Key</button>
+        <p id="apiKey"></p>
+    </div>
+
+    <!-- Chatbot UI -->
+    <div class="chat-container">
+        <h2>GroxyAI Chat</h2>
+        <div id="chatbox"></div>
+        <input type="text" id="userInput" placeholder="Type your message..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        async function loadModel() {
+            window.tokenizer = await window.Transformers.AutoTokenizer.from_pretrained('Xenova/distilgpt2');
+            window.model = await window.Transformers.AutoModelForCausalLM.from_pretrained('Xenova/distilgpt2');
+        }
+
+        async function sendMessage() {
+            let userText = document.getElementById("userInput").value;
+            if (!userText) return;
+
+            document.getElementById("chatbox").innerHTML += `<p><strong>You:</strong> ${userText}</p>`;
+
+            const inputs = window.tokenizer.encode(userText, { return_tensors: 'pt' });
+            const outputs = await window.model.generate(inputs);
+            const botReply = window.tokenizer.decode(outputs[0], { skip_special_tokens: true });
+
+            document.getElementById("chatbox").innerHTML += `<p><strong>Bot:</strong> ${botReply}</p>`;
+            document.getElementById("userInput").value = "";
+        }
+
+        function generateKey() {
+            let key = 'API-' + Math.random().toString(36).substring(2, 15);
+            document.getElementById("apiKey").innerText = "Your API Key: " + key;
+            localStorage.setItem("userAPIKey", key); // Store key locally
+        }
+
+        loadModel(); // Load AI model when page opens
+    </script>
+
+</body>
+</html>
